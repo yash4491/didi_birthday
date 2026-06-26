@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Happy Birthday Pari Didi 🎂</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Poppins:wght@300;400;500;600;700&family=Dancing+Script:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --gold: #FFD700;
+    --rose: #FF6B9D;
+    --magenta: #E91E8C;
+    --purple: #9B27AF;
+    --deep-purple: #4A0072;
+    --lavender: #CE93D8;
+    --pink-light: #FCE4EC;
+    --dark-bg: #0D0010;
+    --card-bg: rgba(255,255,255,0.05);
+    --glow-pink: 0 0 30px rgba(233,30,140,0.6), 0 0 60px rgba(233,30,140,0.3);
+    --glow-gold: 0 0 30px rgba(255,215,0,0.6), 0 0 60px rgba(255,215,0,0.2);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--dark-bg);
+    color: #fff;
+    font-family: 'Poppins', sans-serif;
+    overflow-x: hidden;
+  }
+
+  /* ── MUSIC PLAYER ── */
+  #music-player {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 1000;
+    background: linear-gradient(135deg, rgba(233,30,140,0.9), rgba(74,0,114,0.9));
+    border: 1px solid rgba(255,215,0,0.4);
+    border-radius: 20px;
+    padding: 14px 18px;
+    backdrop-filter: blur(12px);
+    box-shadow: var(--glow-pink);
+    min-width: 280px;
+    transition: all 0.3s ease;
+  }
+  #music-player.minimized { min-width: auto; border-radius: 50%; padding: 14px; }
+  .player-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .player-header.minimized-view { margin-bottom: 0; }
+  .music-icon { font-size: 22px; animation: spin 3s linear infinite; display: inline-block; }
+  .music-icon.paused { animation-play-state: paused; }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  .song-info { flex: 1; }
+  .song-title { font-size: 12px; font-weight: 600; color: var(--gold); }
+  .song-artist { font-size: 11px; color: rgba(255,255,255,0.7); }
+  .toggle-min { background: none; border: none; color: rgba(255,255,255,0.6); cursor: pointer; font-size: 16px; }
+  .player-controls { display: flex; align-items: center; gap: 10px; }
+  .ctrl-btn {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #fff;
+    border-radius: 50%;
+    width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+  }
+  .ctrl-btn:hover { background: var(--magenta); transform: scale(1.1); }
+  .play-btn { width: 44px; height: 44px; font-size: 18px; background: var(--gold); color: #000; border-color: var(--gold); }
+  .play-btn:hover { background: #fff; }
+  .progress-wrap { margin-top: 10px; }
+  .progress-bar-bg { background: rgba(255,255,255,0.15); border-radius: 10px; height: 4px; cursor: pointer; position: relative; }
+  .progress-bar-fill { background: linear-gradient(90deg, var(--gold), var(--rose)); height: 4px; border-radius: 10px; width: 0%; transition: width 0.3s; }
+  .time-row { display: flex; justify-content: space-between; font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 4px; }
+  .volume-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+  .volume-row span { font-size: 13px; }
+  .volume-slider { flex: 1; -webkit-appearance: none; height: 3px; border-radius: 3px; background: rgba(255,255,255,0.2); outline: none; cursor: pointer; }
+  .volume-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: var(--gold); cursor: pointer; }
+  .song-list-btn { width: 100%; margin-top: 8px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.7); border-radius: 8px; padding: 6px; font-size: 11px; cursor: pointer; font-family: 'Poppins', sans-serif; transition: all 0.2s; }
+  .song-list-btn:hover { background: rgba(255,255,255,0.15); }
+  .song-list { margin-top: 8px; max-height: 140px; overflow-y: auto; border-radius: 8px; background: rgba(0,0,0,0.3); }
+  .song-list::-webkit-scrollbar { width: 4px; }
+  .song-list::-webkit-scrollbar-thumb { background: var(--magenta); border-radius: 4px; }
+  .song-item { padding: 8px 12px; font-size: 11px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.06); transition: background 0.2s; display: flex; align-items: center; gap: 8px; }
+  .song-item:hover { background: rgba(233,30,140,0.2); }
+  .song-item.active { color: var(--gold); font-weight: 600; }
+  .song-item .si-num { color: rgba(255,255,255,0.3); font-size: 10px; min-width: 16px; }
+
+  /* ── PARTICLES CANVAS ── */
+  #particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0;
+    z-index: 900;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 40px;
+    background: linear-gradient(180deg, rgba(13,0,16,0.95), transparent);
+    backdrop-filter: blur(6px);
+  }
+  .nav-logo { font-family: 'Dancing Script', cursive; font-size: 28px; background: linear-gradient(90deg, var(--gold), var(--rose)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .nav-links { display: flex; gap: 28px; }
+  .nav-links a { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; transition: color 0.2s; }
+  .nav-links a:hover { color: var(--gold); }
+
+  /* ── HERO ── */
+  #hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    position: relative; z-index: 1;
+    text-align: center;
+    padding: 100px 20px 60px;
+  }
+  .hero-subtitle { font-size: 14px; letter-spacing: 6px; text-transform: uppercase; color: var(--gold); margin-bottom: 20px; }
+  .hero-name {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(60px, 12vw, 130px);
+    font-weight: 900;
+    line-height: 1;
+    background: linear-gradient(135deg, #FFD700 0%, #FF6B9D 40%, #CE93D8 70%, #FFD700 100%);
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shimmer 4s ease infinite;
+    margin-bottom: 10px;
+  }
+  @keyframes shimmer { 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }
+  .hero-didi {
+    font-family: 'Dancing Script', cursive;
+    font-size: clamp(36px, 7vw, 72px);
+    color: var(--lavender);
+    margin-bottom: 30px;
+    text-shadow: 0 0 30px rgba(206,147,216,0.5);
+  }
+  .hero-tagline { font-size: 16px; color: rgba(255,255,255,0.65); max-width: 500px; margin: 0 auto 40px; line-height: 1.8; }
+  .hero-emoji-row { font-size: 36px; margin-bottom: 40px; animation: bounce 2s ease infinite; }
+  @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+  .hero-btn {
+    display: inline-block;
+    padding: 16px 44px;
+    background: linear-gradient(135deg, var(--magenta), var(--purple));
+    color: #fff;
+    text-decoration: none;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: 1px;
+    box-shadow: var(--glow-pink);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .hero-btn:hover { transform: scale(1.05); box-shadow: 0 0 50px rgba(233,30,140,0.8); }
+  .floating-hearts { position: absolute; top: 0; left: 0; right: 0; bottom: 0; overflow: hidden; pointer-events: none; }
+  .heart { position: absolute; font-size: 20px; animation: floatUp linear infinite; opacity: 0; }
+  @keyframes floatUp {
+    0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 0.6; }
+    100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
+  }
+
+  /* ── SECTIONS COMMON ── */
+  section { position: relative; z-index: 1; padding: 100px 40px; }
+  .section-label { font-size: 12px; letter-spacing: 5px; text-transform: uppercase; color: var(--gold); margin-bottom: 12px; }
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(36px, 5vw, 60px);
+    font-weight: 700;
+    line-height: 1.1;
+    margin-bottom: 20px;
+    background: linear-gradient(90deg, #fff 0%, var(--lavender) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .section-divider { width: 80px; height: 3px; background: linear-gradient(90deg, var(--magenta), var(--gold)); border-radius: 3px; margin: 0 auto 40px; }
+
+  /* ── BIRTHDAY COUNTDOWN ── */
+  #countdown { text-align: center; background: radial-gradient(ellipse at center, rgba(74,0,114,0.4) 0%, transparent 70%); }
+  .countdown-grid { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; margin-top: 40px; }
+  .count-box {
+    background: linear-gradient(135deg, rgba(233,30,140,0.15), rgba(74,0,114,0.25));
+    border: 1px solid rgba(255,215,0,0.3);
+    border-radius: 20px;
+    padding: 30px 40px;
+    min-width: 120px;
+    text-align: center;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    backdrop-filter: blur(10px);
+  }
+  .count-num { font-size: 56px; font-weight: 700; background: linear-gradient(135deg, var(--gold), var(--rose)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1; }
+  .count-label { font-size: 12px; color: rgba(255,255,255,0.5); letter-spacing: 3px; text-transform: uppercase; margin-top: 6px; }
+  .birthday-message { margin-top: 40px; font-family: 'Dancing Script', cursive; font-size: 28px; color: var(--rose); }
+
+  /* ── WISHES GALLERY ── */
+  #wishes { text-align: center; }
+  .wishes-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; max-width: 1100px; margin: 0 auto; }
+  .wish-card {
+    background: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.08));
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 24px;
+    padding: 32px 28px;
+    text-align: left;
+    transition: transform 0.3s, box-shadow 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .wish-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--magenta), var(--gold));
+  }
+  .wish-card:hover { transform: translateY(-8px); box-shadow: 0 20px 60px rgba(233,30,140,0.2); }
+  .wish-emoji { font-size: 36px; margin-bottom: 16px; }
+  .wish-text { font-size: 15px; line-height: 1.8; color: rgba(255,255,255,0.85); font-style: italic; margin-bottom: 20px; }
+  .wish-from { font-size: 13px; color: var(--gold); font-weight: 600; }
+
+  /* ── PHOTO/MEMORY SECTION ── */
+  #memories { text-align: center; background: radial-gradient(ellipse at center, rgba(233,30,140,0.08) 0%, transparent 70%); }
+  .memories-mosaic { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; max-width: 900px; margin: 0 auto; }
+  .memory-frame {
+    border-radius: 16px;
+    overflow: hidden;
+    position: relative;
+    aspect-ratio: 1;
+    background: linear-gradient(135deg, rgba(233,30,140,0.2), rgba(74,0,114,0.4));
+    border: 1px solid rgba(255,255,255,0.08);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 48px;
+    transition: transform 0.3s, box-shadow 0.3s;
+    cursor: pointer;
+  }
+  .memory-frame:first-child { grid-column: span 2; grid-row: span 2; font-size: 80px; }
+  .memory-frame:hover { transform: scale(1.03); box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+  .memory-label { position: absolute; bottom: 0; left: 0; right: 0; padding: 20px; background: linear-gradient(0deg, rgba(0,0,0,0.7), transparent); font-size: 13px; color: rgba(255,255,255,0.8); text-align: left; }
+
+  /* ── REASONS TO LOVE ── */
+  #reasons { text-align: center; }
+  .reasons-list { max-width: 800px; margin: 0 auto; }
+  .reason-item {
+    display: flex; align-items: flex-start; gap: 20px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 16px;
+    text-align: left;
+    transition: all 0.3s;
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  .reason-item.visible { opacity: 1; transform: translateX(0); }
+  .reason-num { font-size: 48px; font-weight: 900; color: rgba(255,215,0,0.15); line-height: 1; min-width: 60px; font-family: 'Playfair Display', serif; }
+  .reason-content { flex: 1; }
+  .reason-title { font-weight: 600; font-size: 16px; color: var(--gold); margin-bottom: 6px; }
+  .reason-desc { font-size: 14px; color: rgba(255,255,255,0.65); line-height: 1.7; }
+
+  /* ── INTERACTIVE CAKE ── */
+  #cake-section { text-align: center; }
+  #cake-canvas { max-width: 400px; margin: 0 auto 30px; cursor: pointer; display: block; }
+  .cake-instructions { font-size: 14px; color: rgba(255,255,255,0.5); margin-bottom: 20px; }
+  .candles-lit-msg { font-family: 'Dancing Script', cursive; font-size: 32px; color: var(--gold); min-height: 50px; transition: all 0.3s; }
+
+  /* ── LETTER ── */
+  #letter { max-width: 800px; margin: 0 auto; }
+  .letter-card {
+    background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+    border: 1px solid rgba(255,215,0,0.2);
+    border-radius: 24px;
+    padding: 50px 56px;
+    position: relative;
+    box-shadow: 0 0 80px rgba(233,30,140,0.1);
+  }
+  .letter-card::before {
+    content: '❝';
+    position: absolute; top: 30px; left: 40px;
+    font-size: 80px; color: rgba(255,215,0,0.1);
+    font-family: 'Playfair Display', serif;
+    line-height: 1;
+  }
+  .letter-text { font-family: 'Dancing Script', cursive; font-size: 20px; line-height: 2; color: rgba(255,255,255,0.85); margin-bottom: 30px; }
+  .letter-sign { font-family: 'Dancing Script', cursive; font-size: 24px; color: var(--rose); text-align: right; }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center;
+    padding: 60px 20px;
+    position: relative; z-index: 1;
+    background: linear-gradient(0deg, rgba(13,0,16,1), transparent);
+  }
+  .footer-name { font-family: 'Dancing Script', cursive; font-size: 48px; background: linear-gradient(90deg, var(--gold), var(--rose)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .footer-sub { color: rgba(255,255,255,0.3); font-size: 13px; margin-top: 10px; }
+  .firework-btn {
+    margin-top: 30px;
+    padding: 14px 36px;
+    background: linear-gradient(135deg, var(--gold), #FF8C00);
+    border: none;
+    border-radius: 50px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #000;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: var(--glow-gold);
+  }
+  .firework-btn:hover { transform: scale(1.05); }
+
+  /* ── SCROLL ANIMATIONS ── */
+  .fade-in { opacity: 0; transform: translateY(40px); transition: opacity 0.7s ease, transform 0.7s ease; }
+  .fade-in.visible { opacity: 1; transform: translateY(0); }
+
+  /* ── FIREWORKS OVERLAY ── */
+  #fireworks-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 999; display: none; }
+
+  /* ── CONFETTI ── */
+  .confetti-piece { position: fixed; width: 10px; height: 10px; pointer-events: none; z-index: 998; animation: confettiFall linear forwards; }
+  @keyframes confettiFall {
+    0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+  }
+
+  @media (max-width: 768px) {
+    nav { padding: 12px 20px; }
+    .nav-links { gap: 16px; }
+    section { padding: 70px 20px; }
+    .memories-mosaic { grid-template-columns: repeat(2, 1fr); }
+    .memory-frame:first-child { grid-column: span 2; }
+    .letter-card { padding: 32px 24px; }
+    #music-player { min-width: 240px; right: 12px; bottom: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- FIREWORKS -->
+<canvas id="fireworks-canvas"></canvas>
+
+<!-- PARTICLE BG -->
+<canvas id="particles"></canvas>
+
+<!-- MUSIC PLAYER -->
+<div id="music-player">
+  <div class="player-header" id="player-header">
+    <span class="music-icon" id="disc-icon">🎵</span>
+    <div class="song-info">
+      <div class="song-title" id="song-title">Loading...</div>
+      <div class="song-artist" id="song-artist">Birthday Playlist 🎂</div>
+    </div>
+    <button class="toggle-min" id="toggle-min" title="Minimize">⊖</button>
+  </div>
+  <div id="player-body">
+    <div class="player-controls">
+      <button class="ctrl-btn" id="prev-btn" title="Previous">⏮</button>
+      <button class="ctrl-btn play-btn" id="play-btn" title="Play/Pause">▶</button>
+      <button class="ctrl-btn" id="next-btn" title="Next">⏭</button>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-bar-bg" id="progress-bg">
+        <div class="progress-bar-fill" id="progress-fill"></div>
+      </div>
+      <div class="time-row"><span id="cur-time">0:00</span><span id="dur-time">0:00</span></div>
+    </div>
+    <div class="volume-row">
+      <span>🔈</span>
+      <input type="range" class="volume-slider" id="vol-slider" min="0" max="1" step="0.01" value="0.7">
+      <span>🔊</span>
+    </div>
+    <button class="song-list-btn" id="toggle-playlist">♫ Show Playlist</button>
+    <div class="song-list" id="song-list" style="display:none;"></div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">Pari Didi ✨</div>
+  <div class="nav-links">
+    <a href="#countdown">Countdown</a>
+    <a href="#wishes">Wishes</a>
+    <a href="#reasons">You Are</a>
+    <a href="#cake-section">Cake</a>
+    <a href="#letter">Letter</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="floating-hearts" id="hearts-container"></div>
+  <div class="hero-subtitle">✨ Tomorrow is a very special day ✨</div>
+  <h1 class="hero-name">PARI</h1>
+  <div class="hero-didi">Didi 💝</div>
+  <p class="hero-tagline">The most amazing, most beautiful, most wonderful Didi in the entire universe celebrates her birthday tomorrow — and Yash can't wait! 🌟</p>
+  <div class="hero-emoji-row">🎂 🎁 🎊 🎉 👑</div>
+  <a href="#countdown" class="hero-btn">Let's Celebrate! 🎉</a>
+</section>
+
+<!-- COUNTDOWN / BIRTHDAY MESSAGE -->
+<section id="countdown">
+  <div class="section-label">The Big Day Is Tomorrow!</div>
+  <h2 class="section-title fade-in">Counting Down To Pari Didi! 🎂</h2>
+  <div class="section-divider"></div>
+  <div class="countdown-grid fade-in">
+    <div class="count-box"><div class="count-num" id="days">00</div><div class="count-label">Days</div></div>
+    <div class="count-box"><div class="count-num" id="hours">00</div><div class="count-label">Hours</div></div>
+    <div class="count-box"><div class="count-num" id="minutes">00</div><div class="count-label">Minutes</div></div>
+    <div class="count-box"><div class="count-num" id="seconds">00</div><div class="count-label">Seconds</div></div>
+  </div>
+  <div class="birthday-message fade-in" id="bday-msg"></div>
+</section>
+
+<!-- WISHES -->
+<section id="wishes">
+  <div class="section-label">Love & Wishes</div>
+  <h2 class="section-title fade-in">Birthday Wishes For You 💌</h2>
+  <div class="section-divider"></div>
+  <div class="wishes-grid">
+    <div class="wish-card fade-in">
+      <div class="wish-emoji">🌸</div>
+      <p class="wish-text">"May your birthday be as beautiful and radiant as you are, Didi. You deserve every happiness this world has to offer!"</p>
+      <div class="wish-from">— Yash, your little brother 💕</div>
+    </div>
+    <div class="wish-card fade-in">
+      <div class="wish-emoji">✨</div>
+      <p class="wish-text">"You've always been my guiding star, my inspiration, and my best friend. Happy Birthday to the most magical person I know!"</p>
+      <div class="wish-from">— Yash, your biggest fan 🌟</div>
+    </div>
+    <div class="wish-card fade-in">
+      <div class="wish-emoji">👑</div>
+      <p class="wish-text">"Today the world got a little brighter because YOU were born. You are royalty, Didi — don't ever forget that!"</p>
+      <div class="wish-from">— Yash, forever your admirer 💛</div>
+    </div>
+    <div class="wish-card fade-in">
+      <div class="wish-emoji">🌈</div>
+      <p class="wish-text">"Wishing you a year filled with laughter, adventures, new beginnings, and endless love. You make everything better!"</p>
+      <div class="wish-from">— Yash, who loves you to bits 🤍</div>
+    </div>
+    <div class="wish-card fade-in">
+      <div class="wish-emoji">🎶</div>
+      <p class="wish-text">"May your life always feel like your favourite song — full of rhythm, joy, and the perfect beat. Happy Birthday Pari Didi!"</p>
+      <div class="wish-from">— Yash, always in your corner 💜</div>
+    </div>
+    <div class="wish-card fade-in">
+      <div class="wish-emoji">🦋</div>
+      <p class="wish-text">"You are the kind of person who makes everyone around them feel special. Tomorrow is YOUR day — shine brightest of all!"</p>
+      <div class="wish-from">— Yash, with endless love 🌺</div>
+    </div>
+  </div>
+</section>
+
+<!-- MEMORIES (Emoji placeholders for photos) -->
+<section id="memories">
+  <div class="section-label">Our Memories</div>
+  <h2 class="section-title fade-in">Moments To Treasure 📸</h2>
+  <div class="section-divider"></div>
+  <div class="memories-mosaic fade-in">
+    <div class="memory-frame" style="background: linear-gradient(135deg,#4A0072,#E91E8C);">
+      🌸
+      <div class="memory-label">Forever Beautiful ✨</div>
+    </div>
+    <div class="memory-frame" style="background: linear-gradient(135deg,#E91E8C,#FF6B9D);">🎂<div class="memory-label">Every Birthday 🎉</div></div>
+    <div class="memory-frame" style="background: linear-gradient(135deg,#FFD700,#FF8C00);">👑<div class="memory-label">Queen Always 👑</div></div>
+    <div class="memory-frame" style="background: linear-gradient(135deg,#9B27AF,#CE93D8);">💐<div class="memory-label">Pure Sunshine 🌻</div></div>
+    <div class="memory-frame" style="background: linear-gradient(135deg,#FF6B9D,#9B27AF);">🌈<div class="memory-label">Colourful Soul 🎨</div></div>
+  </div>
+  <p style="color:rgba(255,255,255,0.3); font-size:13px; margin-top:24px;">💡 Add your own photos by replacing the emojis with &lt;img&gt; tags!</p>
+</section>
+
+<!-- REASONS TO LOVE -->
+<section id="reasons">
+  <div class="section-label">Why We Love You</div>
+  <h2 class="section-title fade-in">101 Reasons... Here's A Few 💝</h2>
+  <div class="section-divider"></div>
+  <div class="reasons-list">
+    <div class="reason-item">
+      <div class="reason-num">01</div>
+      <div class="reason-content">
+        <div class="reason-title">Your Smile Lights Up Every Room 😊</div>
+        <div class="reason-desc">When you smile, the whole world seems brighter. It's contagious, it's magical, and it's uniquely yours, Didi. Yash lives for that smile!</div>
+      </div>
+    </div>
+    <div class="reason-item">
+      <div class="reason-num">02</div>
+      <div class="reason-content">
+        <div class="reason-title">Your Heart Is Pure Gold 💛</div>
+        <div class="reason-desc">The kindness and love you give to everyone around you is something truly rare and beautiful. You care so deeply.</div>
+      </div>
+    </div>
+    <div class="reason-item">
+      <div class="reason-num">03</div>
+      <div class="reason-content">
+        <div class="reason-title">You're My Biggest Inspiration 🌟</div>
+        <div class="reason-desc">The strength you carry, the grace you show, the way you handle everything — you inspire Yash every single day, Didi.</div>
+      </div>
+    </div>
+    <div class="reason-item">
+      <div class="reason-num">04</div>
+      <div class="reason-content">
+        <div class="reason-title">Your Laughter Is Music 🎵</div>
+        <div class="reason-desc">There is no better sound in the world than you laughing. It fills the whole room with pure joy and warmth.</div>
+      </div>
+    </div>
+    <div class="reason-item">
+      <div class="reason-num">05</div>
+      <div class="reason-content">
+        <div class="reason-title">You Make Everything Better 🌈</div>
+        <div class="reason-desc">Boring days become adventures, hard days become manageable, and ordinary moments become memories — all because of you.</div>
+      </div>
+    </div>
+    <div class="reason-item">
+      <div class="reason-num">06</div>
+      <div class="reason-content">
+        <div class="reason-title">You're Simply Irreplaceable 👑</div>
+        <div class="reason-desc">There is nobody in this world quite like you, Pari Didi. You are one in a billion, and we are so lucky to have you.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- INTERACTIVE CAKE -->
+<section id="cake-section">
+  <div class="section-label">Make a Wish!</div>
+  <h2 class="section-title fade-in">Blow Out The Candles 🕯️</h2>
+  <div class="section-divider"></div>
+  <p class="cake-instructions">Click the candles to blow them out! 🎂</p>
+  <canvas id="cake-canvas" width="400" height="380"></canvas>
+  <div class="candles-lit-msg" id="candle-msg">Click a candle to blow it out! 🌬️</div>
+</section>
+
+<!-- LETTER -->
+<section id="letter" style="padding:100px 40px;">
+  <div class="section-label" style="text-align:center;">A Letter For You</div>
+  <h2 class="section-title fade-in" style="text-align:center;">From The Heart 💌</h2>
+  <div class="section-divider"></div>
+  <div class="letter-card fade-in">
+    <p class="letter-text">
+      Dear Pari Didi,<br><br>
+      It's me, Yash — your little brother who looks up to you more than you'll ever know. Words could never truly capture how grateful I am to have you as my Didi. You are not just my sister — you are my safe place, my confidante, my cheerleader, and my best friend all rolled into one extraordinary person.<br><br>
+      Tomorrow is YOUR day, and I want you to know that everything you do matters. The love you give, the warmth you bring, the laughter you share — it all makes this world a genuinely better place for me and everyone around you.<br><br>
+      May this birthday mark the beginning of your most beautiful chapter yet. You deserve every dream you've ever dreamed, every wish you've ever made, and then some more.<br><br>
+      Thank you for being the best Didi in the world. Happy Birthday, Pari Didi. 🌸<br><br>
+      Today, tomorrow, and always — your Yash loves you to the moon and back! 💝
+    </p>
+    <div class="letter-sign">With all my love, Yash 💕</div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-name">Happy Birthday Pari Didi! 🎉</div>
+  <p class="footer-sub">Made with 💕 by Yash — your proud little brother</p>
+  <button class="firework-btn" onclick="launchFireworks()">🎆 Launch Fireworks!</button>
+</footer>
+
+<script>
+// ───── SONGS (using royalty-free/public domain audio) ─────
+const songs = [
+  { title: "Happy Birthday Pari Didi (Orchestral)", artist: "Special Version 🎻", url: "birthday.mp3" },
+  { title: "Bairan", artist: "All time Favourite 🎉", url: "bairan.mp3" },
+  { title: "Dooron Dooron", artist: "Our Favourite 🎂", url: "dooron_dooron.mp3" },
+  { title: "tum se hi", artist: "One of your favourite 💃", url: "tumsehi.mp3" },
+];
+
+let currentSong = 0;
+let isPlaying = false;
+let audio = new Audio();
+audio.volume = 0.7;
+
+function loadSong(idx) {
+  audio.src = songs[idx].url;
+  document.getElementById('song-title').textContent = songs[idx].title;
+  document.getElementById('song-artist').textContent = songs[idx].artist;
+  renderPlaylist();
+  audio.load();
+}
+
+function playSong() {
+  audio.play().then(() => {
+    isPlaying = true;
+    document.getElementById('play-btn').textContent = '⏸';
+    document.getElementById('disc-icon').classList.remove('paused');
+  }).catch(() => {});
+}
+
+function pauseSong() {
+  audio.pause();
+  isPlaying = false;
+  document.getElementById('play-btn').textContent = '▶';
+  document.getElementById('disc-icon').classList.add('paused');
+}
+
+document.getElementById('play-btn').addEventListener('click', () => {
+  if (isPlaying) pauseSong(); else playSong();
+});
+
+document.getElementById('prev-btn').addEventListener('click', () => {
+  currentSong = (currentSong - 1 + songs.length) % songs.length;
+  loadSong(currentSong);
+  if (isPlaying) playSong();
+});
+
+document.getElementById('next-btn').addEventListener('click', () => {
+  currentSong = (currentSong + 1) % songs.length;
+  loadSong(currentSong);
+  if (isPlaying) playSong();
+});
+
+audio.addEventListener('ended', () => {
+  currentSong = (currentSong + 1) % songs.length;
+  loadSong(currentSong);
+  playSong();
+});
+
+audio.addEventListener('timeupdate', () => {
+  if (!audio.duration) return;
+  const pct = (audio.currentTime / audio.duration) * 100;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('cur-time').textContent = fmtTime(audio.currentTime);
+  document.getElementById('dur-time').textContent = fmtTime(audio.duration);
+});
+
+document.getElementById('progress-bg').addEventListener('click', e => {
+  const rect = e.currentTarget.getBoundingClientRect();
+  const pct = (e.clientX - rect.left) / rect.width;
+  audio.currentTime = pct * audio.duration;
+});
+
+document.getElementById('vol-slider').addEventListener('input', e => {
+  audio.volume = e.target.value;
+});
+
+function fmtTime(s) {
+  if (!s || isNaN(s)) return '0:00';
+  const m = Math.floor(s / 60), sec = Math.floor(s % 60);
+  return m + ':' + (sec < 10 ? '0' : '') + sec;
+}
+
+// Minimize toggle
+let minimized = false;
+document.getElementById('toggle-min').addEventListener('click', () => {
+  minimized = !minimized;
+  const pb = document.getElementById('player-body');
+  const si = document.getElementById('song-info');
+  const mp = document.getElementById('music-player');
+  if (minimized) {
+    pb.style.display = 'none';
+    mp.style.minWidth = 'auto';
+    document.getElementById('toggle-min').textContent = '⊕';
+  } else {
+    pb.style.display = 'block';
+    mp.style.minWidth = '280px';
+    document.getElementById('toggle-min').textContent = '⊖';
+  }
+});
+
+// Playlist
+function renderPlaylist() {
+  const list = document.getElementById('song-list');
+  list.innerHTML = songs.map((s, i) =>
+    `<div class="song-item${i===currentSong?' active':''}" onclick="selectSong(${i})">
+      <span class="si-num">${i+1}</span>
+      <span>${s.title}</span>
+     </div>`
+  ).join('');
+}
+
+window.selectSong = function(idx) {
+  currentSong = idx;
+  loadSong(idx);
+  playSong();
+};
+
+document.getElementById('toggle-playlist').addEventListener('click', () => {
+  const sl = document.getElementById('song-list');
+  const showing = sl.style.display !== 'none';
+  sl.style.display = showing ? 'none' : 'block';
+  document.getElementById('toggle-playlist').textContent = showing ? '♫ Show Playlist' : '♫ Hide Playlist';
+});
+
+loadSong(0);
+// Auto-play attempt (some browsers block, user can click play)
+setTimeout(() => playSong(), 1000);
+
+// ───── PARTICLES ─────
+const pCanvas = document.getElementById('particles');
+const pCtx = pCanvas.getContext('2d');
+let particles = [];
+
+function resizeParticles() {
+  pCanvas.width = window.innerWidth;
+  pCanvas.height = window.innerHeight;
+}
+resizeParticles();
+window.addEventListener('resize', resizeParticles);
+
+function Particle() {
+  this.x = Math.random() * pCanvas.width;
+  this.y = Math.random() * pCanvas.height;
+  this.r = Math.random() * 2.5 + 0.5;
+  this.vx = (Math.random() - 0.5) * 0.3;
+  this.vy = (Math.random() - 0.5) * 0.3;
+  this.alpha = Math.random() * 0.6 + 0.1;
+  const colors = ['#FFD700','#FF6B9D','#CE93D8','#E91E8C','#ffffff'];
+  this.color = colors[Math.floor(Math.random() * colors.length)];
+}
+
+for (let i = 0; i < 120; i++) particles.push(new Particle());
+
+function animParticles() {
+  pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
+  particles.forEach(p => {
+    p.x += p.vx; p.y += p.vy;
+    if (p.x < 0) p.x = pCanvas.width;
+    if (p.x > pCanvas.width) p.x = 0;
+    if (p.y < 0) p.y = pCanvas.height;
+    if (p.y > pCanvas.height) p.y = 0;
+    pCtx.beginPath();
+    pCtx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    pCtx.fillStyle = p.color;
+    pCtx.globalAlpha = p.alpha;
+    pCtx.fill();
+  });
+  pCtx.globalAlpha = 1;
+  requestAnimationFrame(animParticles);
+}
+animParticles();
+
+// ───── FLOATING HEARTS ─────
+function spawnHeart() {
+  const h = document.createElement('div');
+  h.className = 'heart';
+  const hearts = ['💕','💗','💖','💝','💓','💞','🌸','✨','⭐'];
+  h.textContent = hearts[Math.floor(Math.random() * hearts.length)];
+  h.style.left = Math.random() * 100 + 'vw';
+  h.style.animationDuration = (Math.random() * 8 + 8) + 's';
+  h.style.animationDelay = Math.random() * 5 + 's';
+  h.style.fontSize = (Math.random() * 16 + 12) + 'px';
+  document.getElementById('hearts-container').appendChild(h);
+  setTimeout(() => h.remove(), 20000);
+}
+setInterval(spawnHeart, 800);
+for (let i = 0; i < 8; i++) spawnHeart();
+
+// ───── COUNTDOWN ─────
+function updateCountdown() {
+  const now = new Date();
+  // Next birthday: June 27
+  let bday = new Date(now.getFullYear(), 5, 27); // 5 = June (0-indexed)
+  if (now > bday) bday.setFullYear(bday.getFullYear() + 1);
+  const diff = bday - now;
+  if (diff <= 0) {
+    document.getElementById('days').textContent = '🎂';
+    document.getElementById('hours').textContent = '🎉';
+    document.getElementById('minutes').textContent = '🎊';
+    document.getElementById('seconds').textContent = '✨';
+    document.getElementById('bday-msg').textContent = '🎉 TODAY IS THE DAY! HAPPY BIRTHDAY PARI DIDI! — Love, Yash 🎉';
+    return;
+  }
+  const d = Math.floor(diff / 86400000);
+  const h = Math.floor((diff % 86400000) / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  const s = Math.floor((diff % 60000) / 1000);
+  document.getElementById('days').textContent = String(d).padStart(2,'0');
+  document.getElementById('hours').textContent = String(h).padStart(2,'0');
+  document.getElementById('minutes').textContent = String(m).padStart(2,'0');
+  document.getElementById('seconds').textContent = String(s).padStart(2,'0');
+  if (d === 0) {
+    document.getElementById('bday-msg').textContent = '🥳 Just hours away! Yash is SO excited for you, Didi! 🌟';
+  } else {
+    document.getElementById('bday-msg').textContent = `${d} day${d>1?'s':''} to go — Yash is counting every second! 💕`;
+  }
+}
+updateCountdown();
+setInterval(updateCountdown, 1000);
+
+// ───── SCROLL ANIMATIONS ─────
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) e.target.classList.add('visible');
+  });
+}, { threshold: 0.15 });
+
+document.querySelectorAll('.fade-in, .reason-item').forEach(el => observer.observe(el));
+
+// ───── INTERACTIVE CAKE ─────
+const cakeCanvas = document.getElementById('cake-canvas');
+const cCtx = cakeCanvas.getContext('2d');
+let candlesLit = [true, true, true, true, true, true];
+const totalCandles = 6;
+
+const candlePositions = [
+  {x:90,y:105}, {x:140,y:85}, {x:195,y:75}, {x:250,y:78}, {x:305,y:88}, {x:355,y:108}
+];
+
+function drawCake() {
+  cCtx.clearRect(0, 0, 400, 380);
+
+  // Plate
+  cCtx.beginPath();
+  cCtx.ellipse(200, 345, 175, 22, 0, 0, Math.PI * 2);
+  cCtx.fillStyle = '#f0e0ff';
+  cCtx.fill();
+  cCtx.strokeStyle = '#ce93d8';
+  cCtx.lineWidth = 2;
+  cCtx.stroke();
+
+  // Layer 3 (bottom)
+  cCtx.beginPath();
+  cCtx.ellipse(200, 300, 160, 20, 0, 0, Math.PI * 2);
+  cCtx.fillStyle = '#FF6B9D';
+  cCtx.fill();
+  cCtx.fillStyle = '#E91E8C';
+  cCtx.fillRect(40, 240, 320, 60);
+  cCtx.beginPath();
+  cCtx.ellipse(200, 240, 160, 20, 0, 0, Math.PI * 2);
+  cCtx.fillStyle = '#FF6B9D';
+  cCtx.fill();
+
+  // Frosting drips bottom
+  for (let i = 0; i < 10; i++) {
+    const dx = 50 + i * 32;
+    cCtx.beginPath();
+    cCtx.moveTo(dx, 240);
+    cCtx.bezierCurveTo(dx+6, 255, dx+12, 265, dx+8, 270);
+    cCtx.bezierCurveTo(dx+4, 260, dx-4, 255, dx, 240);
+    cCtx.fillStyle = '#fff';
+    cCtx.fill();
+  }
+
+  // Layer 2 (middle)
+  cCtx.fillStyle = '#9B27AF';
+  cCtx.fillRect(60, 185, 280, 57);
+  cCtx.beginPath();
+  cCtx.ellipse(200, 185, 140, 18, 0, 0, Math.PI * 2);
+  cCtx.fillStyle = '#CE93D8';
+  cCtx.fill();
+  cCtx.beginPath();
+  cCtx.ellipse(200, 242, 140, 18, 0, 0, Math.PI * 2);
+  cCtx.fillStyle = '#9B27AF';
+  cCtx.fill();
+
+  // Layer 1 (top)
+  cCtx.fillStyle = '#E91E8C';
+  cCtx.fillRect(80, 135, 240, 52);
+  cCtx.beginPath();
+  cCtx.ellipse(200, 135, 120, 16, 0, 0, Math.PI * 2);
+  cCtx.fillStyle = '#FF6B9D';
+  cCtx.fill();
+  cCtx.beginPath();
+  cCtx.ellipse(200, 187, 120, 16, 0, 0, Math.PI * 2);
+  cCtx.fillStyle = '#E91E8C';
+  cCtx.fill();
+
+  // Top frosting
+  cCtx.beginPath();
+  cCtx.ellipse(200, 135, 120, 16, 0, 0, Math.PI * 2);
+  cCtx.fillStyle = '#fff';
+  cCtx.fill();
+
+  // Decorations
+  const decoColors = ['#FFD700','#FF6B9D','#CE93D8','#fff','#FFD700'];
+  for (let i = 0; i < 12; i++) {
+    cCtx.beginPath();
+    cCtx.arc(80 + i * 22, 213, 5, 0, Math.PI * 2);
+    cCtx.fillStyle = decoColors[i % decoColors.length];
+    cCtx.fill();
+  }
+
+  // Text on cake
+  cCtx.font = 'bold 16px "Dancing Script", cursive';
+  cCtx.fillStyle = '#FFD700';
+  cCtx.textAlign = 'center';
+  cCtx.fillText('Happy Birthday!', 200, 168);
+  cCtx.font = '12px Poppins, sans-serif';
+  cCtx.fillStyle = '#fff';
+  cCtx.fillText('Pari Didi 🌸', 200, 258);
+
+  // CANDLES
+  candlePositions.forEach((cp, i) => {
+    // Candle body
+    const candleColors = ['#FFD700','#FF6B9D','#CE93D8','#FFD700','#E91E8C','#FF6B9D'];
+    cCtx.fillStyle = candleColors[i];
+    cCtx.fillRect(cp.x - 6, cp.y, 12, 28);
+    // Candle top
+    cCtx.beginPath();
+    cCtx.ellipse(cp.x, cp.y, 6, 3, 0, 0, Math.PI * 2);
+    cCtx.fillStyle = candleColors[i];
+    cCtx.fill();
+
+    if (candlesLit[i]) {
+      // Flame glow
+      const grad = cCtx.createRadialGradient(cp.x, cp.y - 14, 2, cp.x, cp.y - 14, 14);
+      grad.addColorStop(0, 'rgba(255,220,50,0.8)');
+      grad.addColorStop(1, 'rgba(255,80,0,0)');
+      cCtx.beginPath();
+      cCtx.arc(cp.x, cp.y - 14, 14, 0, Math.PI * 2);
+      cCtx.fillStyle = grad;
+      cCtx.fill();
+      // Flame
+      cCtx.beginPath();
+      cCtx.moveTo(cp.x, cp.y);
+      cCtx.bezierCurveTo(cp.x + 6, cp.y - 10, cp.x + 5, cp.y - 18, cp.x, cp.y - 24);
+      cCtx.bezierCurveTo(cp.x - 5, cp.y - 18, cp.x - 6, cp.y - 10, cp.x, cp.y);
+      cCtx.fillStyle = '#FFA500';
+      cCtx.fill();
+      cCtx.beginPath();
+      cCtx.moveTo(cp.x, cp.y - 4);
+      cCtx.bezierCurveTo(cp.x + 3, cp.y - 10, cp.x + 2, cp.y - 17, cp.x, cp.y - 22);
+      cCtx.bezierCurveTo(cp.x - 2, cp.y - 17, cp.x - 3, cp.y - 10, cp.x, cp.y - 4);
+      cCtx.fillStyle = '#FFD700';
+      cCtx.fill();
+    } else {
+      // Smoke
+      cCtx.beginPath();
+      cCtx.moveTo(cp.x, cp.y - 2);
+      cCtx.bezierCurveTo(cp.x + 4, cp.y - 10, cp.x - 4, cp.y - 18, cp.x + 2, cp.y - 26);
+      cCtx.strokeStyle = 'rgba(200,200,200,0.4)';
+      cCtx.lineWidth = 1.5;
+      cCtx.stroke();
+    }
+  });
+}
+
+cakeCanvas.addEventListener('click', e => {
+  const rect = cakeCanvas.getBoundingClientRect();
+  const scaleX = 400 / rect.width;
+  const scaleY = 380 / rect.height;
+  const mx = (e.clientX - rect.left) * scaleX;
+  const my = (e.clientY - rect.top) * scaleY;
+
+  candlePositions.forEach((cp, i) => {
+    if (Math.abs(mx - cp.x) < 20 && my > cp.y - 30 && my < cp.y + 30 && candlesLit[i]) {
+      candlesLit[i] = false;
+      drawCake();
+      const lit = candlesLit.filter(Boolean).length;
+      if (lit === 0) {
+        document.getElementById('candle-msg').textContent = '🎉 Make a wish, Pari Didi! Yash loves you! Happy Birthday! 🎂✨';
+        launchConfetti();
+      } else {
+        document.getElementById('candle-msg').textContent = `${lit} candle${lit>1?'s':''} left! Keep going! 🌬️`;
+      }
+    }
+  });
+});
+
+drawCake();
+// Animate flame flicker
+setInterval(() => drawCake(), 100);
+
+// ───── FIREWORKS ─────
+const fwCanvas = document.getElementById('fireworks-canvas');
+const fwCtx = fwCanvas.getContext('2d');
+let fireworks = [];
+let fwRunning = false;
+let fwTimer = null;
+
+function resizeFW() {
+  fwCanvas.width = window.innerWidth;
+  fwCanvas.height = window.innerHeight;
+}
+resizeFW();
+window.addEventListener('resize', resizeFW);
+
+function Firework() {
+  this.x = Math.random() * fwCanvas.width;
+  this.y = Math.random() * fwCanvas.height * 0.6;
+  this.particles = [];
+  const colors = ['#FFD700','#FF6B9D','#CE93D8','#fff','#E91E8C','#FF8C00','#00E5FF'];
+  const color = colors[Math.floor(Math.random() * colors.length)];
+  for (let i = 0; i < 60; i++) {
+    const angle = (Math.PI * 2 / 60) * i;
+    const speed = Math.random() * 4 + 2;
+    this.particles.push({
+      x: this.x, y: this.y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      alpha: 1, color,
+      size: Math.random() * 3 + 1
+    });
+  }
+}
+
+function animFireworks() {
+  if (!fwRunning) return;
+  fwCtx.fillStyle = 'rgba(13,0,16,0.15)';
+  fwCtx.fillRect(0, 0, fwCanvas.width, fwCanvas.height);
+  fireworks = fireworks.filter(fw => fw.particles.some(p => p.alpha > 0));
+  fireworks.forEach(fw => {
+    fw.particles.forEach(p => {
+      p.x += p.vx; p.y += p.vy;
+      p.vy += 0.05;
+      p.alpha -= 0.015;
+      if (p.alpha < 0) p.alpha = 0;
+      fwCtx.beginPath();
+      fwCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      fwCtx.fillStyle = p.color;
+      fwCtx.globalAlpha = p.alpha;
+      fwCtx.fill();
+    });
+  });
+  fwCtx.globalAlpha = 1;
+  requestAnimationFrame(animFireworks);
+}
+
+window.launchFireworks = function() {
+  fwCanvas.style.display = 'block';
+  fwRunning = true;
+  for (let i = 0; i < 5; i++) {
+    setTimeout(() => fireworks.push(new Firework()), i * 200);
+  }
+  animFireworks();
+  const burst = setInterval(() => {
+    fireworks.push(new Firework());
+    fireworks.push(new Firework());
+  }, 600);
+  setTimeout(() => {
+    clearInterval(burst);
+    setTimeout(() => {
+      fwRunning = false;
+      fwCtx.clearRect(0, 0, fwCanvas.width, fwCanvas.height);
+      fwCanvas.style.display = 'none';
+    }, 3000);
+  }, 5000);
+};
+
+function launchConfetti() {
+  const colors = ['#FFD700','#FF6B9D','#CE93D8','#E91E8C','#9B27AF','#fff','#FF8C00'];
+  for (let i = 0; i < 80; i++) {
+    setTimeout(() => {
+      const c = document.createElement('div');
+      c.className = 'confetti-piece';
+      c.style.left = Math.random() * 100 + 'vw';
+      c.style.top = '-20px';
+      c.style.background = colors[Math.floor(Math.random() * colors.length)];
+      c.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+      c.style.width = (Math.random() * 8 + 6) + 'px';
+      c.style.height = (Math.random() * 8 + 6) + 'px';
+      c.style.animationDuration = (Math.random() * 3 + 2) + 's';
+      document.body.appendChild(c);
+      setTimeout(() => c.remove(), 6000);
+    }, i * 60);
+  }
+  launchFireworks();
+}
+</script>
+</body>
+</html>
